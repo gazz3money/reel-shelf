@@ -93,7 +93,7 @@
       names = Object.fromEntries((m.data || []).map(x => [x.user_id, x.name]));
       render();
     } catch (err) {
-      toast("Couldn't load your shelf. Check your connection.");
+      toast("Couldn't load your shelf: " + (err?.message || "check your connection."));
     } finally { loading = false; }
   }
   const store = {
@@ -425,7 +425,7 @@
     e.preventDefault();
     const name = $("sName").value.trim(); if (!name) return;
     const {error} = await sb.from("members").upsert({user_id: me.id, name});
-    if (error) { toast("Couldn't save your name."); return; }
+    if (error) { toast("Couldn't save your name: " + (error.message || "check your connection.")); return; }
     names[me.id] = name; fillSettings(); render(); toast("Name saved");
   });
   $("signOut").addEventListener("click", async () => { await sb.auth.signOut(); location.reload(); });
@@ -443,7 +443,7 @@
     e.preventDefault();
     const name = $("nName").value.trim(); if (!name) return;
     const {error} = await sb.from("members").upsert({user_id: me.id, name});
-    if (error) { toast("Couldn't save your name. Check your connection."); return; }
+    if (error) { toast("Couldn't save your name: " + (error.message || "check your connection.")); return; }
     names[me.id] = name;
     await enter();
   });

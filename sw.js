@@ -1,5 +1,5 @@
 // Keeps the app's own files available offline. Reel data always comes fresh from the database.
-const CACHE = "reel-shelf-v1";
+const CACHE = "reel-shelf-v2";
 const FILES = ["./", "index.html", "styles.css", "app.js", "config.js", "vendor/supabase.js", "manifest.webmanifest", "icons/icon-192.png", "icons/apple-touch-icon.png"];
 
 self.addEventListener("install", e => {

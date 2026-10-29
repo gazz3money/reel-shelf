@@ -31,6 +31,10 @@ create table if not exists public.shortcut_keys (
   created_at timestamptz not null default now()
 );
 
+-- Newer Supabase projects don't open new tables to the app automatically.
+grant usage on schema public to anon, authenticated;
+grant select, insert, update, delete on public.reels, public.members, public.shortcut_keys to authenticated;
+
 alter table public.reels         enable row level security;
 alter table public.members       enable row level security;
 alter table public.shortcut_keys enable row level security;
