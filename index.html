@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Reel Shelf</title>
+<meta name="description" content="Save Facebook reels and sort them by category, creator, month and length.">
+<meta name="theme-color" content="#f5f4f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#13111a" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Reel Shelf">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- Shown when config.js hasn't been filled in yet -->
+<div class="wrap" id="viewSetup" hidden>
+  <div class="auth">
+    <h1>Reel<span>.</span>Shelf</h1>
+    <p>This copy of Reel Shelf isn't connected to a database yet. Put your Supabase project URL and key into <code>config.js</code>, as the setup guide explains.</p>
+  </div>
+</div>
+
+<!-- Sign in -->
+<div class="wrap" id="viewAuth" hidden>
+  <form class="auth" id="authForm">
+    <h1>Reel<span>.</span>Shelf</h1>
+    <p>Sign in to see your shared shelf.</p>
+    <label class="f">Email <input type="email" id="aEmail" autocomplete="username" required></label>
+    <label class="f">Password <input type="password" id="aPass" autocomplete="current-password" required></label>
+    <p class="err" id="aErr" hidden></p>
+    <button type="submit" class="btn primary" id="aBtn">Sign in</button>
+  </form>
+</div>
+
+<!-- First sign-in: pick a display name -->
+<div class="wrap" id="viewName" hidden>
+  <form class="auth" id="nameForm">
+    <h1>Reel<span>.</span>Shelf</h1>
+    <p>What name should show next to the reels you save?</p>
+    <label class="f">Your name <input type="text" id="nName" maxlength="30" required placeholder="e.g. Erik"></label>
+    <button type="submit" class="btn primary">Continue</button>
+  </form>
+</div>
+
+<div class="wrap" id="viewApp" hidden>
+  <header>
+    <div>
+      <h1>Reel<span>.</span>Shelf</h1>
+      <p class="sub">Facebook reels you saved, sorted by category, creator, month and length.</p>
+    </div>
+    <div class="head-actions">
+      <button type="button" class="btn small ghost" id="refreshBtn">Refresh</button>
+      <button type="button" class="btn small" id="settingsBtn" aria-expanded="false" aria-controls="settingsPanel">Settings</button>
+    </div>
+  </header>
+
+  <section class="panel settings" id="settingsPanel" hidden aria-labelledby="setTitle">
+    <div class="panel-head">
+      <h2 id="setTitle">Settings</h2>
+      <button type="button" class="btn small ghost" id="settingsClose">Close</button>
+    </div>
+    <div class="kv">
+      <span class="lbl">Signed in as</span>
+      <div class="copyrow"><span id="meLine"></span></div>
+      <form class="copyrow" id="renameForm">
+        <input type="text" id="sName" maxlength="30" aria-label="Your name">
+        <button type="submit" class="btn small">Save name</button>
+      </form>
+    </div>
+
+    <div class="kv">
+      <h3>Save reels from Facebook on your iPhone</h3>
+      <p class="howto">iPhones don't let web apps appear in the share menu, so a free Apple Shortcut does it instead. Make your own key below, then follow the steps. Each person sets this up on their own phone.</p>
+      <div id="keyNone">
+        <button type="button" class="btn primary" id="makeKey">Make my Shortcut key</button>
+      </div>
+      <div id="keyShown" class="settings" hidden>
+        <div class="kv"><span class="lbl">Web address for the Shortcut</span>
+          <div class="copyrow"><code id="kUrl"></code><button type="button" class="btn small" data-copy="kUrl">Copy</button></div></div>
+        <div class="kv"><span class="lbl">apikey header</span>
+          <div class="copyrow"><code id="kApi"></code><button type="button" class="btn small" data-copy="kApi">Copy</button></div></div>
+        <div class="kv"><span class="lbl">Your Shortcut key</span>
+          <div class="copyrow"><code id="kKey"></code><button type="button" class="btn small" data-copy="kKey">Copy</button></div></div>
+        <ol class="steps">
+          <li>Open the <b>Shortcuts</b> app, tap <b>+</b>, and name the shortcut <b>Save to Reel Shelf</b>.</li>
+          <li>Tap the <b>ⓘ</b> button (or the shortcut's name, then <b>Details</b>) and turn on <b>Show in Share Sheet</b>. Under share sheet types, keep only <b>URLs</b> and <b>Text</b>.</li>
+          <li>Add the action <b>Get URLs from Input</b>, using <b>Shortcut Input</b>.</li>
+          <li>Optional: add <b>Ask for Input</b> with the prompt <b>Category?</b> so you can label the reel as you save it.</li>
+          <li>Add <b>Get Contents of URL</b>. Paste the web address above. Tap <b>Show More</b>, set Method to <b>POST</b>, and add a header named <b>apikey</b> with the apikey value above.</li>
+          <li>Set Request Body to <b>JSON</b> and add three Text fields: <b>key</b> = your Shortcut key, <b>link</b> = the <b>URLs</b> variable, <b>category</b> = <b>Provided Input</b> (or leave it out if you skipped step 4).</li>
+          <li>Add <b>Show Notification</b> and set its text to <b>Contents of URL</b>. It will say "Saved to Reel Shelf" or "Already on your shelf".</li>
+          <li>In Facebook, tap <b>Share</b> on a reel, then <b>More</b> (or the ••• row), and pick <b>Save to Reel Shelf</b>. The first time, iPhone asks to allow the connection; tap <b>Always Allow</b>.</li>
+        </ol>
+        <button type="button" class="btn small ghost danger" id="newKey">Replace my key</button>
+        <p class="howto" id="newKeyNote" hidden>Your old key stopped working. Paste the new key into your Shortcut.</p>
+      </div>
+    </div>
+
+    <div class="kv">
+      <h3>Add Reel Shelf to your home screen</h3>
+      <p class="howto">In Safari, tap <b>Share</b>, then <b>Add to Home Screen</b>. It opens like an app, without the browser bars.</p>
+    </div>
+
+    <div><button type="button" class="btn" id="signOut">Sign out</button></div>
+  </section>
+
+  <section class="panel" id="addPanel" aria-labelledby="addTitle">
+    <div class="panel-head">
+      <h2 id="addTitle">Add a reel</h2>
+      <div class="tabs" role="tablist" id="tabs">
+        <button type="button" role="tab" id="tabOne" aria-selected="true">One reel</button>
+        <button type="button" role="tab" id="tabBulk" aria-selected="false">Many links</button>
+      </div>
+      <button type="button" class="btn small ghost" id="togglePanel" aria-expanded="true" aria-controls="addBody">Hide</button>
+    </div>
+    <div id="addBody" class="settings">
+      <form id="oneForm" class="grid" autocomplete="off">
+        <label class="f full">Reel link
+          <input type="url" id="fUrl" inputmode="url" placeholder="https://www.facebook.com/reel/…" required>
+        </label>
+        <label class="f full">Title or what it's about
+          <input type="text" id="fTitle" placeholder="e.g. 15-minute garlic noodles">
+        </label>
+        <label class="f">Creator
+          <input type="text" id="fCreator" list="creatorList" placeholder="Page or person">
+        </label>
+        <label class="f">Category
+          <input type="text" id="fCategory" list="categoryList" placeholder="e.g. Recipes">
+        </label>
+        <div class="full chips" id="catChips" aria-label="Recent categories"></div>
+        <label class="f">Length <span class="hint">m:ss, like 0:45 or 2:10</span>
+          <input type="text" id="fLength" class="mono" inputmode="numeric" placeholder="0:45">
+        </label>
+        <label class="f">Date
+          <input type="date" id="fDate">
+        </label>
+        <label class="f full">Notes
+          <input type="text" id="fNotes" placeholder="Optional">
+        </label>
+        <div class="full form-actions">
+          <span class="msg" id="oneMsg"></span>
+          <button type="button" class="btn ghost" id="cancelEdit" hidden>Cancel</button>
+          <button type="submit" class="btn primary" id="saveBtn">Save reel</button>
+        </div>
+      </form>
+
+      <form id="bulkForm" class="grid" hidden autocomplete="off">
+        <label class="f full">Paste links <span class="hint">one or many, any text around them is ignored</span>
+          <textarea id="bText" placeholder="https://www.facebook.com/reel/…&#10;https://fb.watch/…"></textarea>
+        </label>
+        <label class="f">Category for all
+          <input type="text" id="bCategory" list="categoryList" placeholder="Optional">
+        </label>
+        <label class="f">Creator for all
+          <input type="text" id="bCreator" list="creatorList" placeholder="Optional">
+        </label>
+        <div class="full form-actions">
+          <span class="msg" id="bulkMsg">Reels added this way show as “Needs details” until you fill them in.</span>
+          <button type="submit" class="btn primary">Add links</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <div class="toolbar">
+    <input type="search" id="q" placeholder="Search titles, creators, categories, notes">
+    <div class="filters">
+      <select id="filWho" aria-label="Saved by"></select>
+      <select id="filCat" aria-label="Category"></select>
+      <select id="filCreator" aria-label="Creator"></select>
+      <select id="filMonth" aria-label="Month"></select>
+      <select id="filLen" aria-label="Length">
+        <option value="">Any length</option>
+        <option value="s">Under 30s</option>
+        <option value="m">30s to 1 min</option>
+        <option value="l">1 to 3 min</option>
+        <option value="xl">Over 3 min</option>
+        <option value="none">Length not set</option>
+      </select>
+      <select id="groupBy" aria-label="Group by">
+        <option value="month">Group by month</option>
+        <option value="category">Group by category</option>
+        <option value="creator">Group by creator</option>
+        <option value="length">Group by length</option>
+        <option value="who">Group by who saved it</option>
+        <option value="none">No grouping</option>
+      </select>
+      <select id="sortBy" aria-label="Sort">
+        <option value="new">Newest first</option>
+        <option value="old">Oldest first</option>
+        <option value="long">Longest first</option>
+        <option value="short">Shortest first</option>
+        <option value="az">Title A to Z</option>
+      </select>
+    </div>
+    <div class="counts"><span id="countText"></span><span><button type="button" id="needBtn"></button> <button type="button" id="clearFil" hidden>Clear filters</button></span></div>
+  </div>
+
+  <main id="list" aria-live="polite"></main>
+  <datalist id="creatorList"></datalist>
+  <datalist id="categoryList"></datalist>
+</div>
+
+<script src="config.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
